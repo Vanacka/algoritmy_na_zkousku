@@ -179,6 +179,44 @@ def maxcena(koren: VrcholBinStromu):
     return hodnota(koren, 0, 0)
 
 
+def vyska(koren: VrcholBinStromu, h: bool):
+    """
+    koren : kořen zadaného binárního stromu
+    h     : True či False
+    vrátí : maximální výšku podstromu reprezentujícího podvýraz, který se vyhodnotí na hodnotu h
+    """
+    def hloubka(v: VrcholBinStromu, hodnota: bool, hladinka: int):
+        moje_hodnota = True
+        if v is None:
+            return -1, -1, -1
+        if v.levy is None and v.pravy is None:
+            moje_hodnota = v.data
+            if moje_hodnota == hodnota:
+                return hladinka, 0, moje_hodnota
+            return hladinka, -1, moje_hodnota
+        l_max_hladinka, l_max_vyska_podstromu, l_hodnota = hloubka(v.levy, hodnota, hladinka + 1)
+        p_max_hladinka, p_max_vyska_podstromu, p_hodnota = hloubka(v.pravy, hodnota, hladinka + 1)
+        max_hladina_v_podstromu = max(l_max_hladinka, p_max_hladinka)
+        max_vyska_podstromu = max(l_max_vyska_podstromu, p_max_vyska_podstromu)
+        if v.levy is not None:
+            if v.data == "not":
+                moje_hodnota = not l_hodnota
+                if moje_hodnota == hodnota:
+                    max_vyska_podstromu = l_max_hladinka - hladinka
+                else:
+                    max_vyska_podstromu = l_max_vyska_podstromu
+            elif v.data == "and":
+                moje_hodnota = l_hodnota and p_hodnota
+                if moje_hodnota == hodnota:
+                    max_vyska_podstromu = max_hladina_v_podstromu - hladinka
+            else:
+                moje_hodnota = l_hodnota or p_hodnota
+                if moje_hodnota == hodnota:
+                    max_vyska_podstromu = max_hladina_v_podstromu - hladinka
+        return max_hladina_v_podstromu, max_vyska_podstromu, moje_hodnota
+    return hloubka(koren, h, 0)
+
+
 vrchol = VrcholBinStromu(
     2,
     VrcholBinStromu(
@@ -241,4 +279,44 @@ vrchol_operace = VrcholBinStromu(
 
 #print(hladina(vrchol, 9))
 
-print(maxcena(vrchol))
+#print(maxcena(vrchol))
+
+vrchol_logika = VrcholBinStromu(
+    "or",
+    VrcholBinStromu(
+        "not",
+        VrcholBinStromu(
+            "and",
+            VrcholBinStromu(
+                "or",
+                VrcholBinStromu(True, None, None),
+                VrcholBinStromu(False, None, None)
+            ),
+            VrcholBinStromu(
+                "and",
+                VrcholBinStromu(True, None, None),
+                VrcholBinStromu(True, None, None)
+            )
+        ),
+        None
+    ),
+    VrcholBinStromu(
+        "or",
+        VrcholBinStromu(
+            "and",
+            VrcholBinStromu(False, None, None),
+            VrcholBinStromu(
+                "or",
+                VrcholBinStromu(False, None, None),
+                VrcholBinStromu(True, None, None)
+            )
+        ),
+        VrcholBinStromu(
+            "not",
+            VrcholBinStromu(True, None, None),
+            None
+        )
+    )
+)
+
+print(vyska(vrchol_logika, True))
